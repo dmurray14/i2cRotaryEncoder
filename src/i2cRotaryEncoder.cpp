@@ -12,7 +12,7 @@
 // Changelog: see RotaryEncoder.h
 // -----
 
-#include "RotaryEncoder.h"
+#include "i2cRotaryEncoder.h"
 #include "Arduino.h"
 
 #define LATCH0 0 // input state at position 0
@@ -38,16 +38,12 @@ const int8_t KNOBDIR[] = {
 
 // ----- Initialization and Default Values -----
 
-RotaryEncoder::RotaryEncoder(int pin1, int pin2, LatchMode mode)
+RotaryEncoder::RotaryEncoder(LatchMode mode)
 {
   // Remember Hardware Setup
-  _pin1 = pin1;
-  _pin2 = pin2;
+
   _mode = mode;
 
-  // Setup the input pins and turn on pullup resistor
-  pinMode(pin1, INPUT_PULLUP);
-  pinMode(pin2, INPUT_PULLUP);
 
   // when not started in motion, the current state of the encoder should be 3
   _oldState = 3;
@@ -106,11 +102,12 @@ void RotaryEncoder::setPosition(long newPosition)
 } // setPosition()
 
 
-void RotaryEncoder::tick(void)
+void RotaryEncoder::tick(int _sig1, int _sig2)
 {
-  int sig1 = digitalRead(_pin1);
-  int sig2 = digitalRead(_pin2);
+  int sig1 = _sig1;
+  int sig2 = _sig2;
   int8_t thisState = sig1 | (sig2 << 1);
+
 
   if (_oldState != thisState) {
     _position += KNOBDIR[thisState | (_oldState << 2)];
@@ -162,6 +159,7 @@ unsigned long RotaryEncoder::getRPM()
   unsigned long t = max(timeBetweenLastPositions, timeToLastPosition);
   return 60000.0 / ((float)(t * 20));
 }
+
 
 
 // End
